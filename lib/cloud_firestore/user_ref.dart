@@ -86,7 +86,7 @@ Future<List<BookingModel>> getBarberHistory() async {
       .collection('Barber')
       .doc('LorenzoStaff')
       .collection('BookingStaff')
-      .limit(100);
+      .limit(250);
 
   var snapshot = await userRef.orderBy('timeStamp', descending: true).get();
   snapshot.docs.forEach((element) {
