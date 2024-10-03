@@ -31,6 +31,7 @@ class BookingPage extends State<Booking> {
   int step = 1;
   var now = DateTime.now();
   var selectedDate = DateTime.now();
+  var changedDate = DateTime.now();
   var selectedTime = '';
   var selectedTimeSlot = -1;
   var selectedTimeCombo = '';
@@ -269,6 +270,12 @@ class BookingPage extends State<Booking> {
                           showTitleActions: true,
                           minTime: now,
                           maxTime: now.add(Duration(days: 60)),
+                          locale: LocaleType.it, // Localizzazione in italiano
+                          onChanged: (date) {
+                            setState(() {
+                              this.selectedDate = date;
+                            });
+                          },
                           onConfirm: (date) =>
                               setState(() => this.selectedDate = date));
                     },
@@ -279,7 +286,8 @@ class BookingPage extends State<Booking> {
                             child: Icon(
                               Icons.calendar_today,
                               color: Colors.white,
-                            )))),
+                            ))
+                    )),
               ],
             )),
         Expanded(
@@ -292,7 +300,10 @@ class BookingPage extends State<Booking> {
                   child: CircularProgressIndicator(),
                 );
               } else {
-                var listTimeSlot = snapshot.data as List<int>;
+                var data = snapshot.data as Map<String, dynamic>;
+                bool isFerie = data['ferie'];
+                var listTimeSlot = data['slots'];
+                // var listTimeSlot = snapshot.data as List<int>;
                 return GridView.builder(
                     itemCount: TIME_SLOT.length,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -350,12 +361,12 @@ class BookingPage extends State<Booking> {
                                           this.selectedTimeCombo ==
                                               TIME_SLOT.elementAt(index)
                                       ? Colors.blueAccent
-                                      : Colors.grey,
+                                      :  (isChiusoFerie(isFerie) ? Colors.red : Colors.grey),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15),
                                 side: BorderSide(
                                     color: !isAvailable(listTimeSlot, index)
-                                        ? Colors.grey
+                                        ?  (isChiusoFerie(isFerie) ? Colors.red : Colors.grey)
                                         : this.selectedTime ==
                                                     TIME_SLOT
                                                         .elementAt(index) ||
@@ -386,7 +397,7 @@ class BookingPage extends State<Booking> {
                                             fontSize: 18,
                                             color: !isAvailable(
                                                     listTimeSlot, index)
-                                                ? Colors.grey
+                                                ?  (isChiusoFerie(isFerie) ? Colors.red : Colors.grey)
                                                 : this.selectedTime ==
                                                             TIME_SLOT.elementAt(
                                                                 index) ||
@@ -396,14 +407,14 @@ class BookingPage extends State<Booking> {
                                                     ? Colors.blueAccent
                                                     : Colors.black)),
                                     Text(
-                                        !isAvailable(listTimeSlot, index)
-                                            ? 'Occupato'
-                                            : 'Disponibile',
+                                        isAvailable(listTimeSlot, index)
+                                            ? 'Disponibile'
+                                            : isChiusoFerie(isFerie) ? 'Chiuso' : 'Occupato',
                                         style: GoogleFonts.raleway(
                                             fontSize: 18,
                                             color: !isAvailable(
                                                     listTimeSlot, index)
-                                                ? Colors.grey
+                                                ?  (isChiusoFerie(isFerie) ? Colors.red : Colors.grey)
                                                 : this.selectedTime ==
                                                             TIME_SLOT.elementAt(
                                                                 index) ||
@@ -591,6 +602,14 @@ class BookingPage extends State<Booking> {
     return output;
   }
 
+  bool isChiusoFerie(bool isFerieToo) {
+    bool output = false;
+    output = selectedDate.weekday == DateTime.monday ? true : output;
+    output = selectedDate.weekday == DateTime.sunday ? true : output;
+
+    return output || isFerieToo;
+  }
+
   bool isNextSelecatble(int stepParam) {
     if (stepParam == 3) {
       return false;
@@ -685,11 +704,11 @@ class BookingPage extends State<Booking> {
         priority: Priority.high, importance: Importance.max);
     var iOS = new IOSNotificationDetails();
     var platform = new NotificationDetails(android: android, iOS: iOS);
-    var scheduledTime = this.selectedDate.subtract(Duration(hours: 3));
-    var scheduledTimeDay = this.selectedDate.subtract(Duration(days: 1));
+    var scheduledTime = this.selectedDate.add(Duration(hours: 8));
+    var scheduledTimeDay = this.selectedDate.subtract(Duration(hours: 12));
     fltrNotification.schedule(1, "Reminder Appuntamento",
-        "Hai un apuntamento da Barber Lab a breve ", scheduledTime, platform);
-    fltrNotification.schedule(1, "Reminder Appuntamento",
-        "Hai un apuntamento da Barber Lab domani ", scheduledTimeDay, platform);
+        "Hai un appuntamento da Barber Lab a breve apri l'app per controllare", scheduledTime, platform);
+    fltrNotification.schedule(2, "Reminder Appuntamento",
+        "Hai un appuntamento da Barber Lab domani apri l'app per controllare", scheduledTimeDay, platform);
   }
 }
