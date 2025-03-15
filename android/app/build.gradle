@@ -36,9 +36,9 @@ android {
     defaultConfig {
         applicationId "com.davide.falcone.barber_lab_sabatini"
         minSdkVersion 19
-        targetSdkVersion 33
-        versionCode 7
-        versionName "1.0.7"
+        targetSdkVersion 34
+        versionCode 8
+        versionName "1.0.8"
 
         multiDexEnabled true
     }
