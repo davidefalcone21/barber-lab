@@ -8,16 +8,16 @@ import 'package:barber_lab_sabatini/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hooks_riverpod/all.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
-class UserHistory extends StatefulWidget {
+class UserHistory extends ConsumerStatefulWidget {
   @override
-  State<StatefulWidget> createState() => UserHistoryPage();
+  ConsumerState<ConsumerStatefulWidget> createState() => UserHistoryPage();
 }
 
-class UserHistoryPage extends State<UserHistory> {
+class UserHistoryPage extends ConsumerState<UserHistory> {
   GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey();
 
   @override
@@ -41,7 +41,19 @@ class UserHistoryPage extends State<UserHistory> {
               child: CircularProgressIndicator(),
             );
           } else {
+            print('Snapshot state: ${snapshot.connectionState}');
+            print('Snapshot hasData: ${snapshot.hasData}');
+            print('Snapshot data: ${snapshot.data}');
+
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            if (!snapshot.hasData || snapshot.data == null) {
+              return Center(child: Text('Nessuna prenotazione trovata'));
+            }
             var userBookings = snapshot.data as List<BookingModel>;
+            print('userBookings length: ${userBookings.length}');
             if (userBookings == null || userBookings.length == 0) {
               return Center(
                   child: Text(
@@ -61,7 +73,7 @@ class UserHistoryPage extends State<UserHistory> {
                           itemCount: userBookings.length,
                           itemBuilder: (context, index) {
                             var isExpired = DateTime.fromMillisecondsSinceEpoch(
-                                    userBookings[index].timeStamp)
+                                    userBookings[index].timeStamp ?? 0)
                                 .isBefore(syncTime);
                             return Card(
                               elevation: 8,
@@ -92,8 +104,9 @@ class UserHistoryPage extends State<UserHistory> {
                                                       DateTime
                                                           .fromMillisecondsSinceEpoch(
                                                               userBookings[
-                                                                      index]
-                                                                  .timeStamp)),
+                                                                          index]
+                                                                      .timeStamp ??
+                                                                  0)),
                                                   style: GoogleFonts.robotoMono(
                                                       fontSize: 22,
                                                       fontWeight:
@@ -110,7 +123,9 @@ class UserHistoryPage extends State<UserHistory> {
                                                 ),
                                                 Text(
                                                   TIME_SLOT.elementAt(
-                                                      userBookings[index].slot),
+                                                      userBookings[index]
+                                                              .slot ??
+                                                          1),
                                                   style: GoogleFonts.robotoMono(
                                                       fontSize: 22,
                                                       fontWeight:
@@ -195,7 +210,7 @@ class UserHistoryPage extends State<UserHistory> {
         .collection('Barber')
         .doc('LorenzoStaff')
         .collection(
-            '${DateFormat('dd_MM_yyyy').format(DateTime.fromMillisecondsSinceEpoch(bookingModel.timeStamp))}')
+            '${DateFormat('dd_MM_yyyy').format(DateTime.fromMillisecondsSinceEpoch(bookingModel.timeStamp ?? 0))}')
         .doc(bookingModel.slot.toString());
 
     var barberBooking = databaseReference
@@ -218,15 +233,15 @@ class UserHistoryPage extends State<UserHistory> {
 
       var userBookingSuccessivo = databaseReference
           .collection('User')
-          .doc(FirebaseAuth.instance.currentUser.phoneNumber)
-          .collection('Booking_${FirebaseAuth.instance.currentUser.uid}')
+          .doc(FirebaseAuth.instance.currentUser?.phoneNumber)
+          .collection('Booking_${FirebaseAuth.instance.currentUser?.uid}')
           .doc(uuidAlternativo);
 
       var barberBookingSlotSuccessivo = databaseReference
           .collection('Barber')
           .doc('LorenzoStaff')
           .collection(
-              '${DateFormat('dd_MM_yyyy').format(DateTime.fromMillisecondsSinceEpoch(bookingModel.timeStamp))}')
+              '${DateFormat('dd_MM_yyyy').format(DateTime.fromMillisecondsSinceEpoch(bookingModel.timeStamp ?? 0))}')
           .doc(slotAlternativo.toString());
 
       batch.delete(barberBookingSuccessivo);
@@ -234,16 +249,16 @@ class UserHistoryPage extends State<UserHistory> {
       batch.delete(barberBookingSlotSuccessivo);
     }
 
-    batch.delete(userBooking);
+    batch.delete(userBooking!);
     batch.delete(barberBooking);
     batch.delete(barberBookingSlot);
 
     batch.commit().then((value) {
       Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-      ScaffoldMessenger.of(scaffoldKey.currentContext)
+      ScaffoldMessenger.of(scaffoldKey.currentContext!)
           .showSnackBar(SnackBar(content: Text('Prenotazione Cancellata!')));
-      context.read(deleteFlagRefresh).state =
-          !context.read(deleteFlagRefresh).state;
+      ref.read(deleteFlagRefresh.notifier).state =
+          !ref.read(deleteFlagRefresh.notifier).state;
     });
   }
 }

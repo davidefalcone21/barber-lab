@@ -15,7 +15,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  TextEditingController _controller;
+  late TextEditingController _controller;
   bool isAvantiOk = false;
 
   @override
@@ -100,7 +100,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   margin: EdgeInsets.all(10),
                   width: double.infinity,
                   child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(primary: Colors.black),
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.black),
                     onPressed: !isAvantiOk
                         ? null
                         : () {
@@ -117,8 +118,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 Container(
                   margin: EdgeInsets.all(10),
                   width: double.infinity,
-                  child: FlatButton(
-                    color: Colors.black,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.black,
+                    ),
                     onPressed: () {
                       Navigator.of(context).push(
                           MaterialPageRoute(builder: (context) => GuestHome()));

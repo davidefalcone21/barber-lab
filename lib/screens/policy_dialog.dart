@@ -4,10 +4,11 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 
 class PolicyDialog extends StatelessWidget {
   PolicyDialog({
-    Key key,
+    Key? key,
     this.radius = 8,
-    @required this.mdFileName,
-  })  : assert(mdFileName.contains('.md'), 'The file must contain the .md extension'),
+    required this.mdFileName,
+  })  : assert(mdFileName.contains('.md'),
+            'The file must contain the .md extension'),
         super(key: key);
 
   final double radius;
@@ -16,7 +17,8 @@ class PolicyDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
       child: Column(
         children: [
           Expanded(
@@ -27,7 +29,7 @@ class PolicyDialog extends StatelessWidget {
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   return Markdown(
-                    data: snapshot.data,
+                    data: snapshot.data as String,
                   );
                 }
                 return Center(
@@ -36,16 +38,17 @@ class PolicyDialog extends StatelessWidget {
               },
             ),
           ),
-          FlatButton(
-            padding: EdgeInsets.all(0),
-            color: Colors.grey,
-            onPressed: () => Navigator.of(context).pop(),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(radius),
-                bottomRight: Radius.circular(radius),
+          TextButton(
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(radius),
+                  bottomRight: Radius.circular(radius),
+                ),
               ),
             ),
+            onPressed: () => Navigator.of(context).pop(),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.only(
@@ -59,10 +62,9 @@ class PolicyDialog extends StatelessWidget {
               child: Text(
                 "CHIUDI",
                 style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white
-                ),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
               ),
             ),
           ),

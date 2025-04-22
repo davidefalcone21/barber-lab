@@ -9,10 +9,11 @@ import 'package:barber_lab_sabatini/utils/utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart'
+    as picker;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hooks_riverpod/all.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:im_stepper/stepper.dart';
 import 'package:intl/intl.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
@@ -20,12 +21,12 @@ import 'package:uuid/uuid.dart';
 
 import 'package:intl/date_symbol_data_local.dart';
 
-class Booking extends StatefulWidget {
+class Booking extends ConsumerStatefulWidget {
   @override
-  State<StatefulWidget> createState() => BookingPage();
+  ConsumerState<Booking> createState() => BookingPage();
 }
 
-class BookingPage extends State<Booking> {
+class BookingPage extends ConsumerState<Booking> {
   GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey();
 
   int step = 1;
@@ -42,7 +43,7 @@ class BookingPage extends State<Booking> {
   int indexRadio = -1;
   bool isCombo = false;
 
-  FlutterLocalNotificationsPlugin fltrNotification;
+  FlutterLocalNotificationsPlugin? fltrNotification;
 
   @override
   void initState() {
@@ -52,7 +53,7 @@ class BookingPage extends State<Booking> {
     var initilizationsSettings = new InitializationSettings(
         android: androidInitilize, iOS: iOSinitilize);
     fltrNotification = new FlutterLocalNotificationsPlugin();
-    fltrNotification.initialize(initilizationsSettings,
+    fltrNotification?.initialize(initilizationsSettings,
         onSelectNotification: null);
   }
 
@@ -96,7 +97,9 @@ class BookingPage extends State<Booking> {
                           Expanded(
                             child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    primary: Colors.black),
+                                    foregroundColor: Colors
+                                        .white, // <-- This is the correct way to set text color
+                                    backgroundColor: Colors.black),
                                 onPressed: !isPrevSelecatble(step)
                                     ? null
                                     : () => actionPrev(step),
@@ -108,7 +111,9 @@ class BookingPage extends State<Booking> {
                           Expanded(
                             child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                    primary: Colors.black),
+                                    foregroundColor: Colors
+                                        .white, // <-- This is the correct way to set text color
+                                    backgroundColor: Colors.black),
                                 onPressed: !isNextSelecatble(step)
                                     ? null
                                     : () => setState(() => this.step++),
@@ -165,8 +170,8 @@ class BookingPage extends State<Booking> {
     return OutlinedButton(
         onPressed: () => changeIndexRadio(index, txt),
         style: OutlinedButton.styleFrom(
-          primary: Colors.white,
-          onSurface: Colors.white,
+          foregroundColor: Colors.white,
+          disabledForegroundColor: Colors.white,
           backgroundColor: Colors.white,
           shadowColor:
               this.indexRadio == index ? Colors.blueAccent : Colors.black,
@@ -266,11 +271,12 @@ class BookingPage extends State<Booking> {
                             )))),
                 GestureDetector(
                     onTap: () {
-                      DatePicker.showDatePicker(context,
+                      picker.DatePicker.showDatePicker(context,
                           showTitleActions: true,
                           minTime: now,
                           maxTime: now.add(Duration(days: 60)),
-                          locale: LocaleType.it, // Localizzazione in italiano
+                          locale: picker
+                              .LocaleType.it, // Localizzazione in italiano
                           onChanged: (date) {
                             setState(() {
                               this.selectedDate = date;
@@ -286,8 +292,7 @@ class BookingPage extends State<Booking> {
                             child: Icon(
                               Icons.calendar_today,
                               color: Colors.white,
-                            ))
-                    )),
+                            )))),
               ],
             )),
         Expanded(
@@ -361,12 +366,16 @@ class BookingPage extends State<Booking> {
                                           this.selectedTimeCombo ==
                                               TIME_SLOT.elementAt(index)
                                       ? Colors.blueAccent
-                                      :  (isChiusoFerie(isFerie) ? Colors.red : Colors.grey),
+                                      : (isChiusoFerie(isFerie)
+                                          ? Colors.red
+                                          : Colors.grey),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(15),
                                 side: BorderSide(
                                     color: !isAvailable(listTimeSlot, index)
-                                        ?  (isChiusoFerie(isFerie) ? Colors.red : Colors.grey)
+                                        ? (isChiusoFerie(isFerie)
+                                            ? Colors.red
+                                            : Colors.grey)
                                         : this.selectedTime ==
                                                     TIME_SLOT
                                                         .elementAt(index) ||
@@ -397,7 +406,9 @@ class BookingPage extends State<Booking> {
                                             fontSize: 18,
                                             color: !isAvailable(
                                                     listTimeSlot, index)
-                                                ?  (isChiusoFerie(isFerie) ? Colors.red : Colors.grey)
+                                                ? (isChiusoFerie(isFerie)
+                                                    ? Colors.red
+                                                    : Colors.grey)
                                                 : this.selectedTime ==
                                                             TIME_SLOT.elementAt(
                                                                 index) ||
@@ -409,12 +420,16 @@ class BookingPage extends State<Booking> {
                                     Text(
                                         isAvailable(listTimeSlot, index)
                                             ? 'Disponibile'
-                                            : isChiusoFerie(isFerie) ? 'Chiuso' : 'Occupato',
+                                            : isChiusoFerie(isFerie)
+                                                ? 'Chiuso'
+                                                : 'Occupato',
                                         style: GoogleFonts.raleway(
                                             fontSize: 18,
                                             color: !isAvailable(
                                                     listTimeSlot, index)
-                                                ?  (isChiusoFerie(isFerie) ? Colors.red : Colors.grey)
+                                                ? (isChiusoFerie(isFerie)
+                                                    ? Colors.red
+                                                    : Colors.grey)
                                                 : this.selectedTime ==
                                                             TIME_SLOT.elementAt(
                                                                 index) ||
@@ -434,14 +449,7 @@ class BookingPage extends State<Booking> {
   }
 
   confirmBooking() {
-    var hour = selectedTime.length <= 10
-        ? selectedTime.split(':')[0].substring(0, 1)
-        : selectedTime.split(':')[0].substring(0, 2);
-    var minutes = selectedTime.length <= 10
-        ? selectedTime.split(':')[1].substring(0, 1)
-        : selectedTime.split(':')[0].substring(0, 2);
-
-    var userCollection = 'Booking_${FirebaseAuth.instance.currentUser.uid}';
+    var userCollection = 'Booking_${FirebaseAuth.instance.currentUser?.uid}';
 
     setState(() {
       this.note = noteController.text;
@@ -464,8 +472,8 @@ class BookingPage extends State<Booking> {
 
     var bookingModel = BookingModel(
         docId: stringUuid,
-        customerName: context.read(userInformation).state.name,
-        customerPhone: FirebaseAuth.instance.currentUser.phoneNumber,
+        customerName: ref.read(userInformation).name,
+        customerPhone: FirebaseAuth.instance.currentUser?.phoneNumber,
         barberName: 'LorenzoStaff',
         done: false,
         slot: selectedTimeSlot,
@@ -491,8 +499,8 @@ class BookingPage extends State<Booking> {
 
       bookingModelSuccessivo = BookingModel(
           docId: uuidSuccessivo,
-          customerName: context.read(userInformation).state.name,
-          customerPhone: FirebaseAuth.instance.currentUser.phoneNumber,
+          customerName: ref.read(userInformation).name,
+          customerPhone: FirebaseAuth.instance.currentUser?.phoneNumber,
           barberName: 'LorenzoStaff',
           done: false,
           slot: selectedTimeSlotCombo,
@@ -522,8 +530,8 @@ class BookingPage extends State<Booking> {
 
     DocumentReference userBooking = FirebaseFirestore.instance
         .collection('User')
-        .doc(FirebaseAuth.instance.currentUser.phoneNumber)
-        .collection('Booking_${FirebaseAuth.instance.currentUser.uid}')
+        .doc(FirebaseAuth.instance.currentUser?.phoneNumber)
+        .collection('Booking_${FirebaseAuth.instance.currentUser?.uid}')
         .doc(stringUuid);
 
     if (isCombo) {
@@ -542,8 +550,8 @@ class BookingPage extends State<Booking> {
 
       DocumentReference userBookingSuccessivo = FirebaseFirestore.instance
           .collection('User')
-          .doc(FirebaseAuth.instance.currentUser.phoneNumber)
-          .collection('Booking_${FirebaseAuth.instance.currentUser.uid}')
+          .doc(FirebaseAuth.instance.currentUser?.phoneNumber)
+          .collection('Booking_${FirebaseAuth.instance.currentUser?.uid}')
           .doc(uuidSuccessivo);
       batchSuccessivo.set(
           barberBookingTimeSlotSuccessivo, bookingModelSuccessivo.toJson());
@@ -560,9 +568,13 @@ class BookingPage extends State<Booking> {
     batch.set(userBooking, bookingModel.toJson());
 
     batch.commit().then((value) {
+      // Navigate only if context is valid
       Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-      ScaffoldMessenger.of(scaffoldKey.currentContext)
-          .showSnackBar(SnackBar(content: Text('Prenotazione Confermata')));
+
+      if (scaffoldKey.currentContext != null) {
+        ScaffoldMessenger.of(scaffoldKey.currentContext!)
+            .showSnackBar(SnackBar(content: Text('Prenotazione Confermata')));
+      }
 
       _showNotification();
 
@@ -586,18 +598,6 @@ class BookingPage extends State<Booking> {
     output = listTimeSlot.contains(index) ? false : true;
     output = selectedDate.weekday == DateTime.monday ? false : output;
     output = selectedDate.weekday == DateTime.sunday ? false : output;
-
-    final today = DateTime(now.year, now.month, now.day);
-    final aDate =
-        DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
-
-    if (aDate == today) {}
-
-    String timeslot = TIME_SLOT.elementAt(index);
-    String hours = timeslot.substring(0, 2);
-    int hoursInt = int.parse(hours);
-
-    var hoursNow = DateFormat("hh").format(DateTime.now().toLocal()).toString();
 
     return output;
   }
@@ -690,25 +690,34 @@ class BookingPage extends State<Booking> {
                           ElevatedButton(
                               onPressed: () => confirmBooking(),
                               child: Text('Conferma'),
-                              style: ButtonStyle(
-                                  backgroundColor:
-                                      MaterialStateProperty.all(Colors.black)))
+                              style: ElevatedButton.styleFrom(
+                                  foregroundColor: Colors
+                                      .white, // <-- This is the correct way to set text color
+                                  backgroundColor: Colors.black))
                         ])))))
       ],
     );
   }
 
   _showNotification() async {
-    var android = new AndroidNotificationDetails(
-        'Reminder Appuntamento', 'Hai un apuntamento da Barber Lab a breve ',
+    var android = new AndroidNotificationDetails('Reminder Appuntamento',
+        'Hai un apuntamento da Barber Lab a breve ', 'Reminder',
         priority: Priority.high, importance: Importance.max);
     var iOS = new IOSNotificationDetails();
     var platform = new NotificationDetails(android: android, iOS: iOS);
     var scheduledTime = this.selectedDate.add(Duration(hours: 8));
     var scheduledTimeDay = this.selectedDate.subtract(Duration(hours: 12));
-    fltrNotification.schedule(1, "Reminder Appuntamento",
-        "Hai un appuntamento da Barber Lab a breve apri l'app per controllare", scheduledTime, platform);
-    fltrNotification.schedule(2, "Reminder Appuntamento",
-        "Hai un appuntamento da Barber Lab domani apri l'app per controllare", scheduledTimeDay, platform);
+    fltrNotification?.schedule(
+        1,
+        "Reminder Appuntamento",
+        "Hai un appuntamento da Barber Lab a breve apri l'app per controllare",
+        scheduledTime,
+        platform);
+    fltrNotification?.schedule(
+        2,
+        "Reminder Appuntamento",
+        "Hai un appuntamento da Barber Lab domani apri l'app per controllare",
+        scheduledTimeDay,
+        platform);
   }
 }

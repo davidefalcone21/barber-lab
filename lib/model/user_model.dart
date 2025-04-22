@@ -1,20 +1,19 @@
-class UserModel{
-  String name, address;
+class UserModel {
+  String? name, address;
   bool isStaff;
 
-  UserModel({this.name, this.address});
+  UserModel({this.name, this.address, this.isStaff = false});
 
-  UserModel.fromJson(Map<String, dynamic> json){
-    address = json['address'];
-    name = json['name'];
-    isStaff = json['isStaff'] == null ? false : json['isStaff'] as bool;
-  }
+  UserModel.fromJson(Map<String, dynamic> json)
+      : name = json['name']?.toString(),
+        address = json['address']?.toString(),
+        isStaff = json['isStaff'] is bool ? json['isStaff'] as bool : false;
 
-  Map<String, dynamic> toJson(){
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['address'] = this.address;
-    data['name'] = this.name;
-    data['isStaff'] = this.isStaff;
-    return data;
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'address': address,
+      'isStaff': isStaff,
+    };
   }
 }

@@ -5,7 +5,7 @@ import 'package:barber_lab_sabatini/screens/user_history_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/all.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:page_transition/page_transition.dart';
 
 Future<void> main() async {
@@ -74,7 +74,7 @@ class MyHomePage extends ConsumerWidget {
   int index = 0;
 
   @override
-  Widget build(BuildContext context, ScopedReader watch) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(child: Container());
   }
 }

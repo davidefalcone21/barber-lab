@@ -4,16 +4,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:barber_lab_sabatini/state/state_management.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'dart:developer' as developer;
 
-Future<UserModel> getUserProfiles(BuildContext context, String phone) async {
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+
+Future<UserModel> getUserProfiles(
+    BuildContext context, WidgetRef ref, String phone) async {
   CollectionReference userRef = FirebaseFirestore.instance.collection('User');
   DocumentSnapshot snapshot = await userRef.doc(phone).get();
   if (snapshot.exists) {
-    var userModel = UserModel.fromJson(snapshot.data());
-    context.read(userInformation).state = userModel;
+    var userModel = UserModel.fromJson(snapshot.data() as Map<String, dynamic>);
+    ref.read(userInformation.notifier).state = userModel;
     return userModel;
   } else {
     return UserModel(); //return empty user
@@ -21,12 +23,12 @@ Future<UserModel> getUserProfiles(BuildContext context, String phone) async {
 }
 
 Future<UserModel> getUserProfilesLogin(
-    BuildContext context, String phone) async {
+    BuildContext context, WidgetRef ref, String phone) async {
   CollectionReference userRef = FirebaseFirestore.instance.collection('User');
   DocumentSnapshot snapshot = await userRef.doc(phone).get();
   if (snapshot.exists) {
-    var userModel = UserModel.fromJson(snapshot.data());
-    context.read(userInformation).state = userModel;
+    var userModel = UserModel.fromJson(snapshot.data() as Map<String, dynamic>);
+    ref.read(userInformation.notifier).state = userModel;
     return userModel;
   } else {
     return UserModel(); //return empty user
@@ -40,8 +42,6 @@ Future<Map<String, dynamic>> getTimeSlotLorenzo(String date) async {
     'ferie': false,
     'slots': List<int>.empty(growable: true),
   };
-
-  List<int> result_old = new List<int>.empty(growable: true);
 
   //if the selected date is in the collection ferie, we treat it as a day with all timeslots occupied
   var ferieRef = databaseReference.collection('Ferie');
@@ -69,20 +69,64 @@ Future<Map<String, dynamic>> getTimeSlotLorenzo(String date) async {
 }
 
 Future<List<BookingModel>> getUserHistory() async {
+  try {
+    print(
+        'Phone: ${FirebaseAuth.instance.currentUser?.phoneNumber}, UID: ${FirebaseAuth.instance.currentUser?.uid}');
+
+    var listBooking = <BookingModel>[];
+    var userRef = FirebaseFirestore.instance
+        .collection('User')
+        .doc(FirebaseAuth.instance.currentUser?.phoneNumber)
+        .collection('Booking_${FirebaseAuth.instance.currentUser?.uid}')
+        .limit(20);
+
+    var snapshot = await userRef.orderBy('timeStamp', descending: true).get();
+    print('Fetched ${snapshot.docs.length} bookings');
+
+    for (var element in snapshot.docs) {
+      try {
+        var booking = BookingModel.fromJson(element.data());
+        booking.docId = element.id;
+        booking.reference = element.reference;
+        listBooking.add(booking);
+      } catch (e, stack) {
+        print('Error parsing booking: $e');
+        print(stack);
+      }
+    }
+
+    print('Returning listBooking with ${listBooking.length} items');
+    return listBooking;
+  } catch (e, stack) {
+    print('Error in getUserHistory: $e');
+    print(stack);
+    return [];
+  }
+}
+
+Future<List<BookingModel>> getUserHistoryOLd() async {
   var listBooking = new List<BookingModel>.empty(growable: true);
+  var userPhone = FirebaseAuth.instance.currentUser?.phoneNumber;
+  var userUid = FirebaseAuth.instance.currentUser?.uid;
+
+  print('Phone: $userPhone, UID: $userUid');
   var userRef = FirebaseFirestore.instance
       .collection('User')
-      .doc(FirebaseAuth.instance.currentUser.phoneNumber)
-      .collection('Booking_${FirebaseAuth.instance.currentUser.uid}')
+      .doc(FirebaseAuth.instance.currentUser?.phoneNumber)
+      .collection('Booking_${FirebaseAuth.instance.currentUser?.uid}')
       .limit(20);
 
   var snapshot = await userRef.orderBy('timeStamp', descending: true).get();
+  print('Fetched ${snapshot.docs.length} bookings');
+
   snapshot.docs.forEach((element) {
     var booking = BookingModel.fromJson(element.data());
     booking.docId = element.id;
     booking.reference = element.reference;
     listBooking.add(booking);
   });
+  print('Returning listBooking with ${listBooking.length} items');
+
   return listBooking;
 }
 

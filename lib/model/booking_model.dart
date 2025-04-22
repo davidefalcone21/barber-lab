@@ -1,22 +1,19 @@
-// var submitData = {
-//   'customerName': context.read(userInformation).state.name,
-//   'customerPhone': FirebaseAuth.instance.currentUser.phoneNumber,
-//   'barberName' : 'LorenzoStaff',
-//   'done': false,
-//   'slot': selectedTimeSlot,
-//   'timeStamp' : timeStamp,
-//   'time' : '${selectedTime} - ${DateFormat('dd/MM/yyy').format(selectedDate)}',
-//   'note' : note,
-// };
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class BookingModel {
-  String docId, barberName, customerName, customerPhone, time, note, tipoServizio, uuidLinkedHourBooking, userCollection;
-  bool done;
-  int slot, timeStamp, slotLinkedHourBooking;
+  String? docId,
+      barberName,
+      customerName,
+      customerPhone,
+      time,
+      note,
+      tipoServizio,
+      uuidLinkedHourBooking,
+      userCollection;
+  bool? done;
+  int? slot, timeStamp, slotLinkedHourBooking;
 
-  DocumentReference reference;
+  DocumentReference? reference;
 
   BookingModel(
       {this.docId,
@@ -34,21 +31,24 @@ class BookingModel {
       this.userCollection});
 
   BookingModel.fromJson(Map<String, dynamic> json) {
-    docId = json['docId'];
-    barberName = json['barberName'];
-    customerName = json['customerName'];
-    customerPhone = json['customerPhone'];
-    time = json['time'];
-    note = json['note'];
-    done = json['done'] as bool;
-    slot = int.parse(json['slot'] == null ? '-1' : json['slot'].toString());
-    slotLinkedHourBooking = int.parse(json['slotLinkedHourBooking'] == null ? '-1' : json['slotLinkedHourBooking'].toString());
-    timeStamp = int.parse(
-        json['timeStamp'] == null ? '-1' : json['timeStamp'].toString());
-    tipoServizio = json['tipoServizio'];
-    uuidLinkedHourBooking = json['uuidHourBooking'];
-    userCollection = json['userCollection'];
-
+    docId = json['docId']?.toString();
+    barberName = json['barberName']?.toString();
+    customerName = json['customerName']?.toString();
+    customerPhone = json['customerPhone']?.toString();
+    time = json['time']?.toString();
+    note = json['note']?.toString();
+    done = json['done'] is bool ? json['done'] : false;
+    slot =
+        json['slot'] != null ? int.tryParse(json['slot'].toString()) ?? -1 : -1;
+    slotLinkedHourBooking = json['slotLinkedHourBooking'] != null
+        ? int.tryParse(json['slotLinkedHourBooking'].toString()) ?? -1
+        : -1;
+    timeStamp = json['timeStamp'] != null
+        ? int.tryParse(json['timeStamp'].toString()) ?? -1
+        : -1;
+    tipoServizio = json['tipoServizio']?.toString();
+    uuidLinkedHourBooking = json['uuidHourBooking']?.toString();
+    userCollection = json['userCollection']?.toString();
   }
 
   Map<String, dynamic> toJson() {
