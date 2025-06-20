@@ -2,16 +2,33 @@ import 'package:barber_lab_sabatini/screens/booking_screen.dart';
 import 'package:barber_lab_sabatini/screens/home_screen.dart';
 import 'package:barber_lab_sabatini/screens/login_screen.dart';
 import 'package:barber_lab_sabatini/screens/user_history_screen.dart';
+import 'package:barber_lab_sabatini/utils/timeslots_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/all.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // optional: do something with the message
+  print('Background FCM message: ${message.messageId}');
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(ProviderScope(child: MyApp()));
+  await TimeSlotService.init();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  runApp(
+    ProviderScope(
+      child: FcmInitializer(
+        child: MyApp(),
+      ),
+    ),
+  );
+
+  // runApp(ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -74,7 +91,38 @@ class MyHomePage extends ConsumerWidget {
   int index = 0;
 
   @override
-  Widget build(BuildContext context, ScopedReader watch) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(child: Container());
   }
+}
+
+class FcmInitializer extends StatefulWidget {
+  final Widget child;
+  const FcmInitializer({required this.child, Key? key}) : super(key: key);
+  @override
+  _FcmInitializerState createState() => _FcmInitializerState();
+}
+
+class _FcmInitializerState extends State<FcmInitializer> {
+  @override
+  void initState() {
+    super.initState();
+    _setupFcm();
+  }
+
+  Future<void> _setupFcm() async {
+    final messaging = FirebaseMessaging.instance;
+    await messaging.requestPermission(alert: true, badge: true, sound: true);
+    final token = await messaging.getToken();
+    debugPrint('FCM token: $token');
+    FirebaseMessaging.onMessage.listen((msg) {
+      debugPrint('Foreground: ${msg.notification?.title}');
+    });
+    FirebaseMessaging.onMessageOpenedApp.listen((msg) {
+      debugPrint('Tapped: ${msg.messageId}');
+    });
+  }
+
+  @override
+  Widget build(BuildContext c) => widget.child;
 }

@@ -8,16 +8,16 @@ import 'package:barber_lab_sabatini/utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hooks_riverpod/all.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
-class StaffHistory extends StatefulWidget {
+class StaffHistory extends ConsumerStatefulWidget {
   @override
-  State<StatefulWidget> createState() => StaffHistoryPage();
+  ConsumerState<ConsumerStatefulWidget> createState() => StaffHistoryPage();
 }
 
-class StaffHistoryPage extends State<StaffHistory> {
+class StaffHistoryPage extends ConsumerState<StaffHistory> {
   GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey();
 
   @override
@@ -41,7 +41,7 @@ class StaffHistoryPage extends State<StaffHistory> {
               child: CircularProgressIndicator(),
             );
           } else {
-            var userBookings = snapshot.data as List<BookingModel>;
+            var userBookings = snapshot.data as List<BookingModel>?;
             if (userBookings == null || userBookings.length == 0) {
               return Center(
                   child: Text(
@@ -61,7 +61,7 @@ class StaffHistoryPage extends State<StaffHistory> {
                           itemCount: userBookings.length,
                           itemBuilder: (context, index) {
                             var isExpired = DateTime.fromMillisecondsSinceEpoch(
-                                    userBookings[index].timeStamp)
+                                    userBookings[index].timeStamp ?? 0)
                                 .isBefore(syncTime);
                             return Card(
                               elevation: 8,
@@ -91,8 +91,9 @@ class StaffHistoryPage extends State<StaffHistory> {
                                                       DateTime
                                                           .fromMillisecondsSinceEpoch(
                                                               userBookings[
-                                                                      index]
-                                                                  .timeStamp)),
+                                                                          index]
+                                                                      .timeStamp ??
+                                                                  0)),
                                                   style: GoogleFonts.raleway(
                                                       fontSize: 22,
                                                       fontWeight:
@@ -108,7 +109,9 @@ class StaffHistoryPage extends State<StaffHistory> {
                                                 ),
                                                 Text(
                                                   TIME_SLOT.elementAt(
-                                                      userBookings[index].slot),
+                                                      userBookings[index]
+                                                              .slot ??
+                                                          0),
                                                   style: GoogleFonts.raleway(
                                                       fontWeight:
                                                           FontWeight.bold),
@@ -163,8 +166,9 @@ class StaffHistoryPage extends State<StaffHistory> {
                                                 child: Center(
                                               child: Text(
                                                 userBookings
-                                                    .elementAt(index)
-                                                    .note,
+                                                        .elementAt(index)
+                                                        .note ??
+                                                    'N/A',
                                                 style: GoogleFonts.raleway(
                                                     fontSize: 14,
                                                     fontWeight:
@@ -176,8 +180,9 @@ class StaffHistoryPage extends State<StaffHistory> {
                                               child: Center(
                                                 child: Text(
                                                   userBookings
-                                                      .elementAt(index)
-                                                      .customerName,
+                                                          .elementAt(index)
+                                                          .customerName ??
+                                                      "customer_name",
                                                   style: GoogleFonts.raleway(
                                                       fontSize: 14,
                                                       fontWeight:
@@ -190,8 +195,9 @@ class StaffHistoryPage extends State<StaffHistory> {
                                               child: Center(
                                                 child: Text(
                                                   userBookings
-                                                      .elementAt(index)
-                                                      .tipoServizio,
+                                                          .elementAt(index)
+                                                          .tipoServizio ??
+                                                      "tipo_servizio",
                                                   style: GoogleFonts.raleway(
                                                       fontSize: 14,
                                                       fontWeight:
@@ -277,7 +283,7 @@ class StaffHistoryPage extends State<StaffHistory> {
         .collection('Barber')
         .doc('LorenzoStaff')
         .collection(
-            '${DateFormat('dd_MM_yyyy').format(DateTime.fromMillisecondsSinceEpoch(bookingModel.timeStamp))}')
+            '${DateFormat('dd_MM_yyyy').format(DateTime.fromMillisecondsSinceEpoch(bookingModel.timeStamp ?? 0))}')
         .doc(bookingModel.slot.toString());
 
     var barberBooking = databaseReference
@@ -290,21 +296,24 @@ class StaffHistoryPage extends State<StaffHistory> {
 
     var realUserBooking = databaseReference
         .collection('User')
-        .doc(bookingModel.customerPhone)
-        .collection(bookingModel.userCollection)
-        .doc(bookingModel.docId.toString());
+        .doc(bookingModel.customerPhone ??
+            'unknown') // Provide a default value for null
+        .collection(bookingModel.userCollection ??
+            'default_collection') // Provide a default value for null
+        .doc(bookingModel.docId ??
+            'unknown'); // Provide a default value for null
 
-    batch.delete(userBooking);
+    batch.delete(userBooking!);
     batch.delete(barberBooking);
     batch.delete(barberBookingSlot);
     batch.delete(realUserBooking);
 
     batch.commit().then((value) {
       Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
-      ScaffoldMessenger.of(scaffoldKey.currentContext)
+      ScaffoldMessenger.of(scaffoldKey.currentContext!)
           .showSnackBar(SnackBar(content: Text('Prenotazione Cancellata!')));
-      context.read(deleteFlagRefresh).state =
-          !context.read(deleteFlagRefresh).state;
+      ref.read(deleteFlagRefresh.notifier).state =
+          !ref.read(deleteFlagRefresh.notifier).state;
     });
   }
 }

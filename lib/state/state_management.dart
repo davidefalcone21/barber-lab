@@ -1,9 +1,7 @@
-
-
 import 'package:barber_lab_sabatini/model/barber_model.dart';
 import 'package:barber_lab_sabatini/model/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hooks_riverpod/all.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 final userLogged = StateProvider((ref) => FirebaseAuth.instance.currentUser);
 final userToken = StateProvider((ref) => '');

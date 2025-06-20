@@ -18,7 +18,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
+  sdk: ">=2.12.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -29,24 +29,25 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: any
   google_fonts: any
-  firebase_auth: ^3.0.0
-  firebase_auth_ui: any
-  firebase_core: any
+  firebase_auth: ^4.17.8
+  firebase_core: ^2.32.0
+  firebase_messaging: ^14.5.0
   hooks_riverpod: any
   page_transition: any
-  cloud_firestore: ^3.0.0
+  cloud_firestore: ^4.17.5
   rflutter_alert: any
   im_stepper: any
   bottom_navy_bar: ^6.0.0
   intl: any
-  flutter_datetime_picker: any
+  flutter_datetime_picker_plus: ^2.1.0
   ntp: any
   uuid: any
   url_launcher: any
   maps_launcher: any
-  pinput: ^0.2.6
-  flutter_local_notifications: ^9.0.0
+  pinput: ^2.0.0
+  flutter_local_notifications: ^8.2.0
   flutter_markdown: any
+  upgrader: ^7.0.0
 
 
 dev_dependencies:

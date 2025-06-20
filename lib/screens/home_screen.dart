@@ -7,17 +7,18 @@ import 'package:barber_lab_sabatini/screens/user_history_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'booking_screen.dart';
 
 import 'dart:developer' as developer;
 
-class Home extends StatefulWidget {
+class Home extends ConsumerStatefulWidget {
   @override
-  State<StatefulWidget> createState() => HomePage();
+  ConsumerState<Home> createState() => HomePage();
 }
 
-class HomePage extends State<Home> {
+class HomePage extends ConsumerState<Home> {
   int index = 0;
 
   @override
@@ -34,9 +35,9 @@ class HomePage extends State<Home> {
           Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => Home()),
-                  (route) => false);
-              (index) => setState(() => this.index = 0);
-              return false;
+              (route) => false);
+          (index) => setState(() => this.index = 0);
+          return false;
         });
   }
 
@@ -73,7 +74,7 @@ class HomePage extends State<Home> {
   builldBody2() {
     return FutureBuilder(
         future: getUserProfiles(
-            context, FirebaseAuth.instance.currentUser.phoneNumber),
+            context, ref, FirebaseAuth.instance.currentUser?.phoneNumber ?? ''),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(
@@ -83,7 +84,7 @@ class HomePage extends State<Home> {
             var userModel = snapshot.data as UserModel;
             bool isStaff = false;
             if (userModel != null) {
-              isStaff = userModel.isStaff;
+              isStaff = userModel.isStaff ?? false;
             }
             switch (index) {
               case 0:

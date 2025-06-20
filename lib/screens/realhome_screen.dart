@@ -1,57 +1,67 @@
 import 'dart:io';
 
+import 'package:barber_lab_sabatini/utils/timeslots_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:barber_lab_sabatini/cloud_firestore/user_ref.dart';
 import 'package:barber_lab_sabatini/constants/constants.dart';
 import 'package:barber_lab_sabatini/model/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_auth_ui/firebase_auth_ui.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:upgrader/upgrader.dart';
 
-class RealHome extends StatefulWidget {
+class RealHome extends ConsumerStatefulWidget {
   @override
-  State<StatefulWidget> createState() => RealHomePage();
+  ConsumerState<RealHome> createState() => RealHomePage();
 }
 
-class RealHomePage extends State<RealHome> {
+class RealHomePage extends ConsumerState<RealHome> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-        child: Scaffold(
-      resizeToAvoidBottomInset: true,
-      backgroundColor: Color(0xFFDFDFDF),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            //user profile
-            FutureBuilder(
-                future: getUserProfiles(
-                    context, FirebaseAuth.instance.currentUser.phoneNumber),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  } else {
-                    var userModel = snapshot.data as UserModel;
+    return UpgradeAlert(
+        upgrader: Upgrader(
+            canDismissDialog: false, dialogStyle: UpgradeDialogStyle.material),
+        child: SafeArea(
+          child: Scaffold(
+            resizeToAvoidBottomInset: true,
+            backgroundColor: Color(0xFFDFDFDF),
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  //user profile
+                  FutureBuilder(
+                    future: getUserProfiles(
+                      context,
+                      ref,
+                      FirebaseAuth.instance.currentUser?.phoneNumber ?? '',
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else {
+                        var userModel = snapshot.data as UserModel;
 
-                    if (userModel == null ||
-                        userModel.name == null ||
-                        userModel.name == '') {
-                      Future.delayed(Duration.zero, () => showAlert(context));
-                    }
-                    return createWelcomeBanner(context, userModel.name);
-                  }
-                })
-          ],
-        ),
-      ),
-    ));
+                        if (userModel == null ||
+                            userModel.name == null ||
+                            userModel.name == '') {
+                          Future.delayed(
+                              Duration.zero, () => showAlert(context));
+                        }
+                        return createWelcomeBanner(
+                            context, userModel.name ?? 'Utente');
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ));
     throw UnimplementedError();
   }
 
@@ -64,144 +74,189 @@ class RealHomePage extends State<RealHome> {
           child: Stack(
             children: [
               Container(
-                  height: size.height * 0.20 - 20,
-                  width: size.width,
-                  decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: kPrimaryColor,
-                          blurRadius: 9,
-                        ),
-                      ],
-                      color: kPrimaryColor,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(30),
-                        bottomRight: Radius.circular(30),
-                      )),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Ciao ${userName}!',
+                height: size.height * 0.20 - 20,
+                width: size.width,
+                decoration: BoxDecoration(
+                  boxShadow: [BoxShadow(color: kPrimaryColor, blurRadius: 9)],
+                  color: kPrimaryColor,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Ciao $userName!',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                             style: GoogleFonts.raleway(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
-                          OutlinedButton(
-                              style:
-                                  OutlinedButton.styleFrom(primary: Colors.red),
-                              onPressed: () {
-                                showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      final TextEditingController
-                                          _textEditingController =
-                                          TextEditingController();
-                                      bool isChecked = false;
-                                      return StatefulBuilder(
-                                          builder: (context, setState) {
-                                        return AlertDialog(
-                                          content: Form(
-                                              key: _formKey,
-                                              child: Column(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  Text(
-                                                      'Clickando su ELIMINA si conferma la cancellazione PERMANENTE del proprio profilo e delle relative informazioni e prenotazioni'),
-                                                  TextFormField(
-                                                    controller:
-                                                        _textEditingController,
-                                                    validator: (value) {
-                                                      return value.isNotEmpty &&
-                                                              value.toLowerCase() ==
-                                                                  "ELIMINA"
-                                                                      .toLowerCase()
-                                                          ? null
-                                                          : "Invalido";
-                                                    },
-                                                    decoration: InputDecoration(
-                                                        hintMaxLines: 5,
-                                                        hintText:
-                                                            "Scrivere ELIMINA per abilitare il bottone"),
-                                                  ),
-                                                ],
-                                              )),
-                                          actions: <Widget>[
-                                            TextButton(
-                                              child: Text('ANNULLA'),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
+                        ),
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: Text("Conferma Logout"),
+                                  content: Text(
+                                      "Sei sicuro di voler uscire dall'app?"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context)
+                                          .pop(), // Annulla
+                                      child: Text("ANNULLA"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        Navigator.of(context)
+                                            .pop(); // Close dialog
+                                        await FirebaseAuth.instance.signOut();
+                                        Navigator.pushNamedAndRemoveUntil(
+                                            context,
+                                            '/login',
+                                            (route) => false);
+                                      },
+                                      child: Text(
+                                        "LOGOUT",
+                                        style: TextStyle(color: Colors.red),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: Row(
+                            children: [
+                              Icon(Icons.logout, color: Colors.white),
+                            ],
+                          ),
+                        ),
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.red),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                final TextEditingController
+                                    _textEditingController =
+                                    TextEditingController();
+                                return StatefulBuilder(
+                                  builder: (context, setState) {
+                                    return AlertDialog(
+                                      content: Form(
+                                        key: _formKey,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Clickando su ELIMINA si conferma la cancellazione PERMANENTE del proprio profilo e delle relative informazioni e prenotazioni',
                                             ),
-                                            TextButton(
-                                              child: Text(
-                                                'ELIMINA',
-                                                style: TextStyle(
-                                                    color: Colors.redAccent),
-                                              ),
-                                              onPressed: () {
-                                                if (_formKey.currentState
-                                                    .validate()) {
-                                                  deleteUser();
-                                                  FirebaseAuth.instance
-                                                      .signOut();
-                                                  exit(0);
-                                                }
+                                            TextFormField(
+                                              controller:
+                                                  _textEditingController,
+                                              validator: (value) {
+                                                return value!.isNotEmpty &&
+                                                        value.toLowerCase() ==
+                                                            "ELIMINA"
+                                                                .toLowerCase()
+                                                    ? null
+                                                    : "Invalido";
                                               },
+                                              decoration: InputDecoration(
+                                                hintMaxLines: 5,
+                                                hintText:
+                                                    "Scrivere ELIMINA per abilitare il bottone",
+                                              ),
                                             ),
                                           ],
-                                        );
-                                      });
-                                    });
+                                        ),
+                                      ),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          child: Text('ANNULLA'),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                        ),
+                                        TextButton(
+                                          child: Text(
+                                            'ELIMINA',
+                                            style: TextStyle(
+                                              color: Colors.redAccent,
+                                            ),
+                                          ),
+                                          onPressed: () {
+                                            if (_formKey.currentState!
+                                                .validate()) {
+                                              deleteUser();
+                                              FirebaseAuth.instance.signOut();
+                                              exit(0);
+                                            }
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
                               },
-                              child: Icon(Icons.delete, color: Colors.red))
-                        ],
-                      ),
+                            );
+                          },
+                          child: Icon(Icons.delete, color: Colors.red),
+                        ),
+                      ],
                     ),
-                  )),
+                  ),
+                ),
+              ),
               Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: kDefaultPadding),
-                    height: 50,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Benvenuto da BarberLab!',
-                          style: GoogleFonts.raleway(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: kPrimaryColor,
-                          ),
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: kDefaultPadding),
+                  height: 50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Benvenuto da BarberLab!',
+                        style: GoogleFonts.raleway(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: kPrimaryColor,
                         ),
                       ),
                     ),
-                    decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                            color: kPrimaryColor,
-                            blurRadius: 9,
-                          ),
-                        ],
-                        color: Colors.white,
-                        borderRadius: BorderRadius.all(Radius.circular(10))),
-                  ))
+                  ),
+                  decoration: BoxDecoration(
+                    boxShadow: [BoxShadow(color: kPrimaryColor, blurRadius: 9)],
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
-        SizedBox(
-          height: 20,
-        ),
+        SizedBox(height: 20),
         Container(
           height: size.height * 0.35 - 30,
           width: size.width * 0.90,
@@ -221,16 +276,17 @@ class RealHomePage extends State<RealHome> {
                         ),
                       ),
                       Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                              margin:
-                                  EdgeInsets.only(right: kDefaultPadding / 2),
-                              height: 7,
-                              color: kPrimaryColor.withOpacity(0.2)))
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          margin: EdgeInsets.only(right: kDefaultPadding / 2),
+                          height: 7,
+                          color: kPrimaryColor.withOpacity(0.2),
+                        ),
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
               Row(
@@ -249,7 +305,7 @@ class RealHomePage extends State<RealHome> {
                       fontSize: 14,
                       color: kPrimaryColor,
                     ),
-                  )
+                  ),
                 ],
               ),
               Row(
@@ -263,12 +319,12 @@ class RealHomePage extends State<RealHome> {
                     ),
                   ),
                   Text(
-                    '08:00 - 13:00 / 15:00 - 19:00',
+                    TimeSlotService.hours,
                     style: GoogleFonts.raleway(
                       fontSize: 14,
                       color: kPrimaryColor,
                     ),
-                  )
+                  ),
                 ],
               ),
               Row(
@@ -282,12 +338,12 @@ class RealHomePage extends State<RealHome> {
                     ),
                   ),
                   Text(
-                    '08:00 - 13:00 / 15:00 - 19:00',
+                    TimeSlotService.hours,
                     style: GoogleFonts.raleway(
                       fontSize: 14,
                       color: kPrimaryColor,
                     ),
-                  )
+                  ),
                 ],
               ),
               Row(
@@ -301,12 +357,12 @@ class RealHomePage extends State<RealHome> {
                     ),
                   ),
                   Text(
-                    '08:00 - 13:00 / 15:00 - 19:00',
+                    TimeSlotService.hours,
                     style: GoogleFonts.raleway(
                       fontSize: 14,
                       color: kPrimaryColor,
                     ),
-                  )
+                  ),
                 ],
               ),
               Row(
@@ -320,12 +376,12 @@ class RealHomePage extends State<RealHome> {
                     ),
                   ),
                   Text(
-                    '08:00 - 13:00 / 15:00 - 19:00',
+                    TimeSlotService.hours,
                     style: GoogleFonts.raleway(
                       fontSize: 14,
                       color: kPrimaryColor,
                     ),
-                  )
+                  ),
                 ],
               ),
               Row(
@@ -339,12 +395,12 @@ class RealHomePage extends State<RealHome> {
                     ),
                   ),
                   Text(
-                    '08:00 - 13:00 / 15:00 - 19:00',
+                    TimeSlotService.hours,
                     style: GoogleFonts.raleway(
                       fontSize: 14,
                       color: kPrimaryColor,
                     ),
-                  )
+                  ),
                 ],
               ),
               Row(
@@ -363,15 +419,13 @@ class RealHomePage extends State<RealHome> {
                       fontSize: 14,
                       color: kPrimaryColor,
                     ),
-                  )
+                  ),
                 ],
               ),
             ],
           ),
         ),
-        SizedBox(
-          height: 30,
-        ),
+        SizedBox(height: 30),
         Container(
           height: size.height * 0.30 - 30,
           width: size.width * 0.9,
@@ -379,73 +433,70 @@ class RealHomePage extends State<RealHome> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
-                  child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Stack(
-                    children: [
-                      Text(
-                        'Dove siamo',
-                        style: GoogleFonts.raleway(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Stack(
+                      children: [
+                        Text(
+                          'Dove siamo',
+                          style: GoogleFonts.raleway(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
-                      Positioned(
+                        Positioned(
                           bottom: 0,
                           left: 0,
                           right: 0,
                           child: Container(
-                              margin:
-                                  EdgeInsets.only(right: kDefaultPadding / 2),
-                              height: 7,
-                              color: kPrimaryColor.withOpacity(0.2)))
-                    ],
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                    'Via Roma, 201',
-                    style: GoogleFonts.raleway(
-                      fontSize: 14,
-                      color: kPrimaryColor,
-                    ),
-                  ),
-                  Text(
-                    'Pontedera 56025 (PI)',
-                    style: GoogleFonts.raleway(
-                      fontSize: 14,
-                      color: kPrimaryColor,
-                    ),
-                  ),
-                ],
-              )),
-              Expanded(
-                  child: GestureDetector(
-                onTap: () => {_launchMaps()},
-                child: Container(
-                  decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: kPrimaryColor,
-                          blurRadius: 4,
+                            margin: EdgeInsets.only(right: kDefaultPadding / 2),
+                            height: 7,
+                            color: kPrimaryColor.withOpacity(0.2),
+                          ),
                         ),
                       ],
-                      border: Border.all(
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Via Roma, 201',
+                      style: GoogleFonts.raleway(
+                        fontSize: 14,
                         color: kPrimaryColor,
-                        width: 2,
                       ),
+                    ),
+                    Text(
+                      'Pontedera 56025 (PI)',
+                      style: GoogleFonts.raleway(
+                        fontSize: 14,
+                        color: kPrimaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => {_launchMaps()},
+                  child: Container(
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(color: kPrimaryColor, blurRadius: 4),
+                      ],
+                      border: Border.all(color: kPrimaryColor, width: 2),
                       borderRadius: BorderRadius.circular(12),
                       image: DecorationImage(
-                          image: AssetImage('assets/images/img_def_maps.PNG'),
-                          fit: BoxFit.cover)),
+                        image: AssetImage('assets/images/img_def_maps.PNG'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
                 ),
-              ))
+              ),
             ],
           ),
-        )
+        ),
       ],
     );
   }
@@ -464,13 +515,13 @@ class RealHomePage extends State<RealHome> {
 
     var currentUser = databaseReference
         .collection('User')
-        .doc(FirebaseAuth.instance.currentUser.phoneNumber)
+        .doc(FirebaseAuth.instance.currentUser?.phoneNumber)
         .delete();
 
     databaseReference
         .collection('User')
-        .doc(FirebaseAuth.instance.currentUser.phoneNumber)
-        .collection('Booking_${FirebaseAuth.instance.currentUser.uid}')
+        .doc(FirebaseAuth.instance.currentUser?.phoneNumber)
+        .collection('Booking_${FirebaseAuth.instance.currentUser?.uid}')
         .get()
         .then((snapshot) {
       for (DocumentSnapshot ds in snapshot.docs) {
@@ -478,57 +529,64 @@ class RealHomePage extends State<RealHome> {
       }
     });
 
-    User user = await FirebaseAuth.instance.currentUser;
+    User? user = await FirebaseAuth.instance.currentUser;
     FirebaseAuth.instance.signOut();
-    user.delete();
+    user?.delete();
   }
 
   void showAlert(BuildContext context) {
     showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          var nameProfileController = TextEditingController();
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        var nameProfileController = TextEditingController();
 
-          return AlertDialog(
-            title: Text('Inserisci le tue informazioni personali!'),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            content: Container(
-              child: Padding(
-                padding: EdgeInsets.all(8),
-                child: Column(
-                  children: [
-                    TextField(
-                        decoration: InputDecoration(
-                          icon: Icon(Icons.account_circle),
-                          hintText: 'Inserisci il tuo nome',
-                        ),
-                        controller: nameProfileController),
-                  ],
-                ),
+        return AlertDialog(
+          title: Text('Inserisci le tue informazioni personali!'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          content: Container(
+            child: Padding(
+              padding: EdgeInsets.all(8),
+              child: Column(
+                children: [
+                  TextField(
+                    decoration: InputDecoration(
+                      icon: Icon(Icons.account_circle),
+                      hintText: 'Inserisci il tuo nome',
+                    ),
+                    controller: nameProfileController,
+                  ),
+                ],
               ),
             ),
-            actions: [
-              TextButton(
-                  onPressed: () async {
-                    CollectionReference userRef =
-                        FirebaseFirestore.instance.collection('User');
-                    DocumentSnapshot snapshot = await userRef
-                        .doc(FirebaseAuth.instance.currentUser.phoneNumber)
-                        .get();
-                    userRef
-                        .doc(FirebaseAuth.instance.currentUser.phoneNumber)
-                        .set({
-                      'name': nameProfileController.text,
-                      'address': ""
-                    });
-                    Navigator.pushNamedAndRemoveUntil(
-                        context, '/home', (route) => false);
-                  },
-                  child: Text('Salva'))
-            ],
-          );
-        });
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                CollectionReference userRef =
+                    FirebaseFirestore.instance.collection('User');
+                DocumentSnapshot snapshot = await userRef
+                    .doc(FirebaseAuth.instance.currentUser?.phoneNumber)
+                    .get();
+                userRef
+                    .doc(FirebaseAuth.instance.currentUser?.phoneNumber)
+                    .set({
+                  'name': nameProfileController.text,
+                  'address': "",
+                });
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/home',
+                  (route) => false,
+                );
+              },
+              child: Text('Salva'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
