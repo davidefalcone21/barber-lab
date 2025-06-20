@@ -31,6 +31,7 @@ dependencies:
   google_fonts: any
   firebase_auth: ^4.17.8
   firebase_core: ^2.32.0
+  firebase_messaging: ^14.5.0
   hooks_riverpod: any
   page_transition: any
   cloud_firestore: ^4.17.5
@@ -46,6 +47,7 @@ dependencies:
   pinput: ^2.0.0
   flutter_local_notifications: ^8.2.0
   flutter_markdown: any
+  upgrader: ^7.0.0
 
 
 dev_dependencies:

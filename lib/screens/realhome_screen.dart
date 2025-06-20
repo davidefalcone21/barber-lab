@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:barber_lab_sabatini/utils/timeslots_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:barber_lab_sabatini/cloud_firestore/user_ref.dart';
 import 'package:barber_lab_sabatini/constants/constants.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:upgrader/upgrader.dart';
 
 class RealHome extends ConsumerStatefulWidget {
   @override
@@ -21,41 +23,48 @@ class RealHomePage extends ConsumerState<RealHome> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        resizeToAvoidBottomInset: true,
-        backgroundColor: Color(0xFFDFDFDF),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              //user profile
-              FutureBuilder(
-                future: getUserProfiles(
-                  context,
-                  ref,
-                  FirebaseAuth.instance.currentUser?.phoneNumber ?? '',
-                ),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else {
-                    var userModel = snapshot.data as UserModel;
+    return UpgradeAlert(
+        upgrader: Upgrader(
+            canDismissDialog: false,
+            dialogStyle: UpgradeDialogStyle.material,
+            debugDisplayAlways: true,
+            debugLogging: true),
+        child: SafeArea(
+          child: Scaffold(
+            resizeToAvoidBottomInset: true,
+            backgroundColor: Color(0xFFDFDFDF),
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  //user profile
+                  FutureBuilder(
+                    future: getUserProfiles(
+                      context,
+                      ref,
+                      FirebaseAuth.instance.currentUser?.phoneNumber ?? '',
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else {
+                        var userModel = snapshot.data as UserModel;
 
-                    if (userModel == null ||
-                        userModel.name == null ||
-                        userModel.name == '') {
-                      Future.delayed(Duration.zero, () => showAlert(context));
-                    }
-                    return createWelcomeBanner(
-                        context, userModel.name ?? 'Utente');
-                  }
-                },
+                        if (userModel == null ||
+                            userModel.name == null ||
+                            userModel.name == '') {
+                          Future.delayed(
+                              Duration.zero, () => showAlert(context));
+                        }
+                        return createWelcomeBanner(
+                            context, userModel.name ?? 'Utente');
+                      }
+                    },
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
     throw UnimplementedError();
   }
 
@@ -313,7 +322,7 @@ class RealHomePage extends ConsumerState<RealHome> {
                     ),
                   ),
                   Text(
-                    '08:00 - 13:00 / 15:00 - 19:00',
+                    TimeSlotService.hours,
                     style: GoogleFonts.raleway(
                       fontSize: 14,
                       color: kPrimaryColor,
@@ -332,7 +341,7 @@ class RealHomePage extends ConsumerState<RealHome> {
                     ),
                   ),
                   Text(
-                    '08:00 - 13:00 / 15:00 - 19:00',
+                    TimeSlotService.hours,
                     style: GoogleFonts.raleway(
                       fontSize: 14,
                       color: kPrimaryColor,
@@ -351,7 +360,7 @@ class RealHomePage extends ConsumerState<RealHome> {
                     ),
                   ),
                   Text(
-                    '08:00 - 13:00 / 15:00 - 19:00',
+                    TimeSlotService.hours,
                     style: GoogleFonts.raleway(
                       fontSize: 14,
                       color: kPrimaryColor,
@@ -370,7 +379,7 @@ class RealHomePage extends ConsumerState<RealHome> {
                     ),
                   ),
                   Text(
-                    '08:00 - 13:00 / 15:00 - 19:00',
+                    TimeSlotService.hours,
                     style: GoogleFonts.raleway(
                       fontSize: 14,
                       color: kPrimaryColor,
@@ -389,7 +398,7 @@ class RealHomePage extends ConsumerState<RealHome> {
                     ),
                   ),
                   Text(
-                    '08:00 - 13:00 / 15:00 - 19:00',
+                    TimeSlotService.hours,
                     style: GoogleFonts.raleway(
                       fontSize: 14,
                       color: kPrimaryColor,
