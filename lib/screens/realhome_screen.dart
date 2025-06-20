@@ -25,10 +25,7 @@ class RealHomePage extends ConsumerState<RealHome> {
   Widget build(BuildContext context) {
     return UpgradeAlert(
         upgrader: Upgrader(
-            canDismissDialog: false,
-            dialogStyle: UpgradeDialogStyle.material,
-            debugDisplayAlways: true,
-            debugLogging: true),
+            canDismissDialog: false, dialogStyle: UpgradeDialogStyle.material),
         child: SafeArea(
           child: Scaffold(
             resizeToAvoidBottomInset: true,
