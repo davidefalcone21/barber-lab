@@ -122,10 +122,16 @@ class UserHistoryPage extends ConsumerState<UserHistory> {
                                                       GoogleFonts.robotoMono(),
                                                 ),
                                                 Text(
-                                                  TIME_SLOT.elementAt(
-                                                      userBookings[index]
-                                                              .slot ??
-                                                          1),
+                                                  getTimeSlotListForDate(DateTime
+                                                          .fromMillisecondsSinceEpoch(
+                                                              userBookings[
+                                                                          index]
+                                                                      .timeStamp ??
+                                                                  0))
+                                                      .elementAt(
+                                                          userBookings[index]
+                                                                  .slot ??
+                                                              1),
                                                   style: GoogleFonts.robotoMono(
                                                       fontSize: 22,
                                                       fontWeight:

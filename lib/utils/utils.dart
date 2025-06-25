@@ -25,6 +25,13 @@ const TIME_SLOT_OLD = {
 };
 
 final TIME_SLOT = TimeSlotService.slots;
+final TIME_SLOT_NEW = TimeSlotService.slots_new; // Load from Firebase
+
+List<String> getTimeSlotListForDate(DateTime date) {
+  final switchDate = TimeSlotService.newSlotsStartDate;
+
+  return date.isBefore(switchDate) ? TIME_SLOT : TIME_SLOT_NEW;
+}
 
 Future<DateTime> syncTime() async {
   var now = DateTime.now();
