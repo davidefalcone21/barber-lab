@@ -343,16 +343,19 @@ class BookingPage extends ConsumerState<Booking> {
                                       !listTimeSlot.contains(indexDopo)) {
                                     setState(() {
                                       this.selectedTimeCombo =
-                                          TIME_SLOT.elementAt(indexDopo);
+                                          getTimeSlotListForDate(selectedDate)
+                                              .elementAt(indexDopo);
                                       this.selectedTimeSlotCombo = indexDopo;
                                       this.selectedTime =
-                                          TIME_SLOT.elementAt(index);
+                                          getTimeSlotListForDate(selectedDate)
+                                              .elementAt(index);
                                       this.selectedTimeSlot = index;
                                     });
                                   } else {
                                     setState(() {
                                       this.selectedTime =
-                                          TIME_SLOT.elementAt(index);
+                                          getTimeSlotListForDate(selectedDate)
+                                              .elementAt(index);
                                       this.selectedTimeSlot = index;
                                     });
                                   }
@@ -362,9 +365,13 @@ class BookingPage extends ConsumerState<Booking> {
                               shadowColor: !isAvailable(listTimeSlot, index)
                                   ? Colors.black
                                   : this.selectedTime ==
-                                              TIME_SLOT.elementAt(index) ||
+                                              getTimeSlotListForDate(
+                                                      selectedDate)
+                                                  .elementAt(index) ||
                                           this.selectedTimeCombo ==
-                                              TIME_SLOT.elementAt(index)
+                                              getTimeSlotListForDate(
+                                                      selectedDate)
+                                                  .elementAt(index)
                                       ? Colors.blueAccent
                                       : (isChiusoFerie(isFerie)
                                           ? Colors.red
@@ -377,10 +384,13 @@ class BookingPage extends ConsumerState<Booking> {
                                             ? Colors.red
                                             : Colors.grey)
                                         : this.selectedTime ==
-                                                    TIME_SLOT
+                                                    getTimeSlotListForDate(
+                                                            selectedDate)
                                                         .elementAt(index) ||
                                                 this.selectedTimeCombo ==
-                                                    TIME_SLOT.elementAt(index)
+                                                    getTimeSlotListForDate(
+                                                            selectedDate)
+                                                        .elementAt(index)
                                             ? Colors.blueAccent
                                             : Colors.black,
                                     width: 1),
@@ -388,9 +398,13 @@ class BookingPage extends ConsumerState<Booking> {
                               color: !isAvailable(listTimeSlot, index)
                                   ? Colors.white
                                   : this.selectedTime ==
-                                              TIME_SLOT.elementAt(index) ||
+                                              getTimeSlotListForDate(
+                                                      selectedDate)
+                                                  .elementAt(index) ||
                                           this.selectedTimeCombo ==
-                                              TIME_SLOT.elementAt(index)
+                                              getTimeSlotListForDate(
+                                                      selectedDate)
+                                                  .elementAt(index)
                                       ? Colors.white
                                       : Colors.white,
                               child: GridTile(
@@ -401,7 +415,8 @@ class BookingPage extends ConsumerState<Booking> {
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
-                                    Text('${TIME_SLOT.elementAt(index)}',
+                                    Text(
+                                        '${getTimeSlotListForDate(selectedDate).elementAt(index)}',
                                         style: GoogleFonts.raleway(
                                             fontSize: 18,
                                             color: !isAvailable(
@@ -410,11 +425,15 @@ class BookingPage extends ConsumerState<Booking> {
                                                     ? Colors.red
                                                     : Colors.grey)
                                                 : this.selectedTime ==
-                                                            TIME_SLOT.elementAt(
-                                                                index) ||
+                                                            getTimeSlotListForDate(
+                                                                    selectedDate)
+                                                                .elementAt(
+                                                                    index) ||
                                                         this.selectedTimeCombo ==
-                                                            TIME_SLOT.elementAt(
-                                                                index)
+                                                            getTimeSlotListForDate(
+                                                                    selectedDate)
+                                                                .elementAt(
+                                                                    index)
                                                     ? Colors.blueAccent
                                                     : Colors.black)),
                                     Text(
@@ -431,11 +450,15 @@ class BookingPage extends ConsumerState<Booking> {
                                                     ? Colors.red
                                                     : Colors.grey)
                                                 : this.selectedTime ==
-                                                            TIME_SLOT.elementAt(
-                                                                index) ||
+                                                            getTimeSlotListForDate(
+                                                                    selectedDate)
+                                                                .elementAt(
+                                                                    index) ||
                                                         this.selectedTimeCombo ==
-                                                            TIME_SLOT.elementAt(
-                                                                index)
+                                                            getTimeSlotListForDate(
+                                                                    selectedDate)
+                                                                .elementAt(
+                                                                    index)
                                                     ? Colors.blueAccent
                                                     : Colors.black))
                                   ])))),

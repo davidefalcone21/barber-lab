@@ -108,10 +108,16 @@ class StaffHistoryPage extends ConsumerState<StaffHistory> {
                                                   style: GoogleFonts.raleway(),
                                                 ),
                                                 Text(
-                                                  TIME_SLOT.elementAt(
-                                                      userBookings[index]
-                                                              .slot ??
-                                                          0),
+                                                  getTimeSlotListForDate(DateTime
+                                                          .fromMillisecondsSinceEpoch(
+                                                              userBookings[
+                                                                          index]
+                                                                      .timeStamp ??
+                                                                  0))
+                                                      .elementAt(
+                                                          userBookings[index]
+                                                                  .slot ??
+                                                              0),
                                                   style: GoogleFonts.raleway(
                                                       fontWeight:
                                                           FontWeight.bold),
